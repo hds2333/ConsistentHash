@@ -15,33 +15,55 @@ type node struct {
     hash uint64
 }
 
+type virtualNode struct {
+    id string
+    hash uint64
+    ower string
+}
+
 var cnts []int
 
-func addToRing (obj string, nodes []node) int {
+func addToRing (obj string, nodes []node, virtualNodes []virtualNode) int {
     size := len(nodes)
+    size1 := len(virtualNodes)
+
     var objHash uint64
     objHash = calcHash(obj)
     fmt.Printf("obj:%d\n", objHash)
-    var index int
+    var virIndex int
+    var actualIndex int
     var min uint64
+
+    if len(nodes) > 0 {
+        min = virtualNodes[0].hash - objHash
+    }
+
+    for i := 1; i < size1; i++ {
+        tmp := virtualNodes[i].hash - objHash
+        if  tmp >= 0 && tmp < min{
+            min = tmp
+            virIndex = i
+            //break
+        }
+    }
 
     if len(nodes) > 0 {
         min = nodes[0].hash - objHash
     }
 
     for i := 1; i < size; i++ {
-        tmp := nodes[i].hash - objHash
+        tmp := nodes[i].hash - virtualNodes[virIndex].hash
         if  tmp >= 0 && tmp < min{
             min = tmp
-            index = i
+            actualIndex = i
             //break
         }
     }
 
-    fmt.Printf("%s added to %s\n", obj, nodes[index].id);
-    nodes[index].num = cnts[index] + 1
-    cnts[index] = cnts[index] + 1
-    nodes[index].objs[cnts[index] - 1] = obj
+    fmt.Printf("%s added to %s\n", obj, nodes[actualIndex].id);
+    nodes[actualIndex].num = cnts[actualIndex] + 1
+    cnts[actualIndex] = cnts[actualIndex] + 1
+    nodes[actualIndex].objs[cnts[actualIndex] - 1] = obj
 
     return 0
 }
@@ -70,7 +92,6 @@ func reDistribute(nodes []node) {
 }
 
 func main() {
-
     nodeNum := 4
     for i := 0; i < nodeNum; i++ {
         cnts = append(cnts, 0)
@@ -84,11 +105,25 @@ func main() {
     for i := 0; i < nodeNum; i++ {
         s := []string{"node", strconv.Itoa(i)}
         var newNode node
-        newNode.id = strings.Join(s, ":")
+        newNode.id = strings.Join(s, "")
         newNode.num = 0
         newNode.hash = calcHash(newNode.id)
         newNode.objs = objs
         nodes = append(nodes, newNode)
+    }
+
+    var virtualNodes []virtualNode
+
+    for i := 0; i < len(nodes); i++ {
+        for j := 0; j < 4; j++ {
+            s := []string{nodes[i].id, "#", strconv.Itoa(j)}
+            ss := strings.Join(s, "")
+            fmt.Printf("virname:%s\n", ss)
+            var newVir virtualNode
+            newVir.id = ss
+            newVir.hash = calcHash(newVir.id)
+            virtualNodes = append(virtualNodes, newVir)
+        }
     }
 
     //distribute data
@@ -98,7 +133,8 @@ func main() {
 
     //fmt.Printf("len: %d\n", len(objs))
     for i := 0; i < len(objs); i++ {
-        addToRing(objs[i], nodes)
+        addToRing(objs[i], nodes, virtualNodes)
     }
 
+    
 }

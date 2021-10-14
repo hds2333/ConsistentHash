@@ -1,2 +1,2 @@
 # ConsistentHash
-一致性哈希的实现
+achieve a simple consistent hash, which could be used in redis
